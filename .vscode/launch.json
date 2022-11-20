@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-StorageQueueDemoApplication<StorageQueueDemo>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.cyrus822.manulife.messagingdemo.StorageQueueDemo.StorageQueueDemoApplication",
+            "projectName": "StorageQueueDemo",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
