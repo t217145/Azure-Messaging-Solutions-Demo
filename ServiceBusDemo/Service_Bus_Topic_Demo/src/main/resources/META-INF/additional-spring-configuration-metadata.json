@@ -8,5 +8,25 @@
     "name": "topic.connStr",
     "type": "java.lang.String",
     "description": "A description for 'topic.connStr'"
+  },
+  {
+    "name": "queue.name",
+    "type": "java.lang.String",
+    "description": "A description for 'queue.name'"
+  },
+  {
+    "name": "queue.connStr",
+    "type": "java.lang.String",
+    "description": "A description for 'queue.connStr'"
+  },
+  {
+    "name": "topic.simple.name",
+    "type": "java.lang.String",
+    "description": "A description for 'topic.simple.name'"
+  },
+  {
+    "name": "queue.simple.name",
+    "type": "java.lang.String",
+    "description": "A description for 'queue.simple.name'"
   }
 ]}

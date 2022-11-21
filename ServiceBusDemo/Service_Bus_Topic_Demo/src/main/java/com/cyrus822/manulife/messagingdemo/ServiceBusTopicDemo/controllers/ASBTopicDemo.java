@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
@@ -27,14 +26,14 @@ public class ASBTopicDemo {
     @Autowired
     private JmsTemplate template;
 
-    @Value("${topic.name}")
-    private String topicName;
-
     @Value("${topic.connStr}")
-    private String connStr;    
+    private String topicConnStr;
 
-    @PostMapping("/newPaymentJMS/{sessionId}")
-    public String postMessageJMS(@PathVariable("sessionId")String ctxId, @RequestBody Payment payment) {
+    @Value("${queue.connStr}")
+    private String queueConnStr;    
+
+    @PostMapping("/newPaymentJMS/{topicname}/{sessionId}")
+    public String postMessageJMS(@PathVariable("sessionId")String ctxId, @PathVariable("topicname")String topicName, @RequestBody Payment payment) {
         String rtnMsg = "";
         try{
             template.convertAndSend(topicName, new ObjectMapper().writeValueAsString(payment), jmsMessage -> {
@@ -49,15 +48,15 @@ public class ASBTopicDemo {
         return rtnMsg;
     }
 
-    @PostMapping("/newPaymentSdk/{sessionId}")
-    public String postMessageSdk(@PathVariable("sessionId")String ctxId, @RequestBody Payment payment) {
+    @PostMapping("/newPaymentSdk/{topicname}/{sessionId}")
+    public String postMessageSdk(@PathVariable("sessionId")String ctxId, @PathVariable("topicname")String topicName, @RequestBody Payment payment) {
         String rtnMsg = "";
         AtomicBoolean sampleSuccessful = new AtomicBoolean(false);
         CountDownLatch countdownLatch = new CountDownLatch(1);
                 
         try{
             //prepare the sender
-            ServiceBusClientBuilder builder = new ServiceBusClientBuilder().connectionString(connStr);
+            ServiceBusClientBuilder builder = new ServiceBusClientBuilder().connectionString(topicConnStr);
             ServiceBusSenderAsyncClient sender = builder.sender().topicName(topicName).buildAsyncClient();
             
             //prepare the message
