@@ -1,10 +1,14 @@
 package com.cyrus822.manulife.messagingdemo.ServiceBusTopicDemo.controllers;
 
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -92,8 +96,8 @@ public class ASBTopicDemo {
         return rtnMsg;
     }
 
-    @PostMapping("/byHTTP/{destinationName}")
-    public String byHTTP(@PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
+    @PostMapping("/byHTTP/{destinationName}/{token}")
+    public String byHTTP(@PathVariable("destinationName")String destinationName, @PathVariable("token")String token, @RequestBody Payment payment) {
         String rtnMsg = "";
                 
         try{
@@ -102,9 +106,15 @@ public class ASBTopicDemo {
             final String baseUrl = String.format(nsUrl, destinationName);
             URI uri = new URI(baseUrl);
 
-            //prepare the message
-            String paymentJSON = new ObjectMapper().writeValueAsString(payment);
-            ResponseEntity<Void> result = rt.postForEntity(uri, BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)), Void.class);
+            // create headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", token);
+            headers.set("_type", "com.cyrus822.manulife.messagingdemo.ServiceBusTopicDemo.models.Payment");
+            HttpEntity<Payment> entity = new HttpEntity<>(payment, headers);
+
+            ResponseEntity<Void> result = rt.postForEntity(uri, entity, Void.class);
+            
 
             int rtnCode = result.getStatusCodeValue();
 
