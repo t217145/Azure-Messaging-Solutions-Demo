@@ -39,7 +39,7 @@ public class ASBDemoSender{
     @Value("${namespace.url}")
     private String nsUrl;
 
-    private final String objectType = "com.cyrus822.manulife.messagingdemo.ServiceBusTopicDemo.models.Payment";
+    private static final String OBJECTTYPE = "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment";
 
 /* Basic */
     @PostMapping("/byJMS/{destinationName}")
@@ -47,7 +47,7 @@ public class ASBDemoSender{
         String rtnMsg = "";
         try{
             template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment), jmsMessage -> {
-                jmsMessage.setStringProperty("_type", objectType);                
+                jmsMessage.setStringProperty("_type", OBJECTTYPE);                
                 return jmsMessage;
             });
             rtnMsg = "Send Success";
@@ -73,7 +73,7 @@ public class ASBDemoSender{
             String paymentJSON = new ObjectMapper().writeValueAsString(payment);
             ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
             Map<String, Object> maps = msg.getApplicationProperties();
-            maps.put("_type", objectType);
+            maps.put("_type", OBJECTTYPE);
 
             //send out the message
             sender.sendMessage(msg).subscribe(
@@ -113,7 +113,7 @@ public class ASBDemoSender{
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", token);
-            headers.set("_type", objectType);
+            headers.set("_type", OBJECTTYPE);
             HttpEntity<Payment> entity = new HttpEntity<>(payment, headers);
 
             //Call WS
