@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "namespace.url",
+    "type": "java.lang.String",
+    "description": "A description for 'namespace.url'"
+  },
+  {
+    "name": "queue.simple.name",
+    "type": "java.lang.String",
+    "description": "A description for 'queue.simple.name'"
+  },
+  {
+    "name": "topic.simple.name",
+    "type": "java.lang.String",
+    "description": "A description for 'topic.simple.name'"
+  }
+]}
