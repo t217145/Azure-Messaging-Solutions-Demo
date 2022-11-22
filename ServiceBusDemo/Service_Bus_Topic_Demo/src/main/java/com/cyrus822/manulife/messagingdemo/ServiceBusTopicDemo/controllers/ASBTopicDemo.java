@@ -1,6 +1,5 @@
 package com.cyrus822.manulife.messagingdemo.ServiceBusTopicDemo.controllers;
 
-import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -101,21 +100,22 @@ public class ASBTopicDemo {
         String rtnMsg = "";
                 
         try{
-            //prepare the sender
+            //Prepare the sender
             RestTemplate rt = new RestTemplate();
             final String baseUrl = String.format(nsUrl, destinationName);
             URI uri = new URI(baseUrl);
 
-            // create headers
+            //Create headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", token);
             headers.set("_type", "com.cyrus822.manulife.messagingdemo.ServiceBusTopicDemo.models.Payment");
             HttpEntity<Payment> entity = new HttpEntity<>(payment, headers);
 
+            //Call WS
             ResponseEntity<Void> result = rt.postForEntity(uri, entity, Void.class);
-            
 
+            //Get the response
             int rtnCode = result.getStatusCodeValue();
 
             rtnMsg = (rtnCode == 201) ? "Send Success" : "Send failed";
