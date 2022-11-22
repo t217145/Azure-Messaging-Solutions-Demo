@@ -13,5 +13,20 @@
     "name": "queue.simple.name",
     "type": "java.lang.String",
     "description": "A description for 'queue.simple.name'"
+  },
+  {
+    "name": "queue.session.name",
+    "type": "java.lang.String",
+    "description": "A description for 'queue.session.name'"
+  },
+  {
+    "name": "topic.session.name",
+    "type": "java.lang.String",
+    "description": "A description for 'topic.session.name'"
+  },
+  {
+    "name": "queue.nosession.name",
+    "type": "java.lang.String",
+    "description": "A description for 'queue.nosession.name'"
   }
 ]}

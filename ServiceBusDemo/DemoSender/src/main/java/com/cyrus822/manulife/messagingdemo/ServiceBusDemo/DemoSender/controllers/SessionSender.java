@@ -2,6 +2,7 @@ package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoSender.controller
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,71 +32,81 @@ public class SessionSender {
     @Value("${spring.jms.servicebus.connection-string}")
     private String connStr; 
 
-   /* With Session Id */
-   @PostMapping("/withSessionId/{destinationName}/{sessionId}")
-   public String withSessionId(@PathVariable("sessionId")String ctxId, @PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
-       String rtnMsg = "";
-       AtomicBoolean sampleSuccessful = new AtomicBoolean(false);
-       CountDownLatch countdownLatch = new CountDownLatch(1);
-               
-       try{
-           //prepare the sender
-           ServiceBusClientBuilder builder = new ServiceBusClientBuilder().connectionString(connStr);
-           ServiceBusSenderAsyncClient sender = builder.sender().topicName(destinationName).buildAsyncClient();
-           
-           //prepare the message
-           String paymentJSON = new ObjectMapper().writeValueAsString(payment);
-           ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8))).setSessionId(ctxId);
-           ServiceBusMessage batchMsg1 = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8))).setSessionId(ctxId + "-batch");
-           ServiceBusMessage batchMsg2 = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8))).setSessionId(ctxId + "-batch");
-           List<ServiceBusMessage> messages = Arrays.asList(batchMsg1, batchMsg2);
-           
-           //send out the message
-           sender.sendMessage(msg).subscribe(
-               unused -> System.out.println("Batch sent."),
-               error -> System.err.println("Error occurred while publishing message batch: " + error),
-               () -> {
-                   System.out.println("Batch send complete.");
-                   sampleSuccessful.set(true);
-               }
-           );
+    private static final String OBJECTTYPE = "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment";    
 
-           sender.sendMessages(messages).subscribe(
-               unused -> System.out.println("Batch sent."),
-               error -> System.err.println("Error occurred while publishing message batch: " + error),
-               () -> {
-                   System.out.println("Batch send complete.");
-                   sampleSuccessful.set(true);
-               }
-           );
+    /* With Session Id */
+    @PostMapping("/withSessionId/{destinationName}/{sessionId}")
+    public String withSessionId(@PathVariable("sessionId")String ctxId, @PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
+        String rtnMsg = "";
+        AtomicBoolean sampleSuccessful = new AtomicBoolean(false);
+        CountDownLatch countdownLatch = new CountDownLatch(1);
+                
+        try{
+            //prepare the sender
+            ServiceBusClientBuilder builder = new ServiceBusClientBuilder().connectionString(connStr);
+            ServiceBusSenderAsyncClient sender = builder.sender().topicName(destinationName).buildAsyncClient();
+            
+            //prepare the message
+            String paymentJSON = new ObjectMapper().writeValueAsString(payment);
+            ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8))).setSessionId(ctxId);
+            Map<String, Object> maps = msg.getApplicationProperties();
+            maps.put("_type", OBJECTTYPE);
+                        
+            ServiceBusMessage batchMsg1 = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8))).setSessionId(ctxId + "-batch");
+            Map<String, Object> batchMsg1Maps = msg.getApplicationProperties();
+            batchMsg1Maps.put("_type", OBJECTTYPE);
+            ServiceBusMessage batchMsg2 = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8))).setSessionId(ctxId + "-batch");
+            Map<String, Object> batchMsg2Maps = msg.getApplicationProperties();
+            batchMsg2Maps.put("_type", OBJECTTYPE);
+            List<ServiceBusMessage> messages = Arrays.asList(batchMsg1, batchMsg2);
+            
+            //send out the message
+            sender.sendMessage(msg).subscribe(
+                unused -> System.out.println("Batch sent."),
+                error -> System.err.println("Error occurred while publishing message batch: " + error),
+                () -> {
+                    System.out.println("Batch send complete.");
+                    sampleSuccessful.set(true);
+                }
+            );
 
-           // subscribe() is not a blocking call. We wait here so the program does not end before the send is complete.
-           countdownLatch.await(10, TimeUnit.SECONDS);
+            sender.sendMessages(messages).subscribe(
+                unused -> System.out.println("Batch sent."),
+                error -> System.err.println("Error occurred while publishing message batch: " + error),
+                () -> {
+                    System.out.println("Batch send complete.");
+                    sampleSuccessful.set(true);
+                }
+            );
 
-           // Close the sender.
-           sender.close();
+            // subscribe() is not a blocking call. We wait here so the program does not end before the send is complete.
+            countdownLatch.await(10, TimeUnit.SECONDS);
 
-           rtnMsg = String.format("Send Success : session id : {%s}", ctxId);           
-       } catch (Exception e){
-           rtnMsg = "Send Fail" + e.getStackTrace();
-           e.printStackTrace();
-       }
-       return rtnMsg;
-   }
+            // Close the sender.
+            sender.close();
 
-   @PostMapping("/withSessionIdByJMS/{destinationName}/{sessionId}")
-   public String withSessionIdByJMS(@PathVariable("sessionId")String ctxId, @PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
-       String rtnMsg = "";
-       try{
-           template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment), jmsMessage -> {
-               jmsMessage.setStringProperty("JMSXGroupID", ctxId);                
-               return jmsMessage;
-           });
-           rtnMsg = String.format("Send Success : session id : {%s}", ctxId);           
-       } catch (Exception e){
-           rtnMsg = "Send Fail" + e.getStackTrace();
-           e.printStackTrace();
-       }
-       return rtnMsg;
-   } 
+            rtnMsg = String.format("Send Success : session id : {%s}", ctxId);           
+        } catch (Exception e){
+            rtnMsg = "Send Fail" + e.getStackTrace();
+            e.printStackTrace();
+        }
+        return rtnMsg;
+    }
+
+    @PostMapping("/withSessionIdByJMS/{destinationName}/{sessionId}")
+    public String withSessionIdByJMS(@PathVariable("sessionId")String ctxId, @PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
+        String rtnMsg = "";
+        try{
+            template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment), jmsMessage -> {
+                jmsMessage.setStringProperty("JMSXGroupID", ctxId); 
+                jmsMessage.setStringProperty("_type", OBJECTTYPE);                
+                return jmsMessage;
+            });
+            rtnMsg = String.format("Send Success : session id : {%s}", ctxId);           
+        } catch (Exception e){
+            rtnMsg = "Send Fail" + e.getStackTrace();
+            e.printStackTrace();
+        }
+        return rtnMsg;
+    } 
 }

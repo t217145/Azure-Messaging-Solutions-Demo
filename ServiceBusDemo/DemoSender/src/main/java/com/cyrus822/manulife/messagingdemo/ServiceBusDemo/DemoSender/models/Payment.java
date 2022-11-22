@@ -11,6 +11,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Payment implements Serializable {
+    private int policyNo;
     private String bankCode;
     private String currency;
     private String acctNo;
