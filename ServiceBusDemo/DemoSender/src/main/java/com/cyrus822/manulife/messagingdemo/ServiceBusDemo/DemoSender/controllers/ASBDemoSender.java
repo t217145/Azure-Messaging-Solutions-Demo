@@ -1,5 +1,6 @@
 package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoSender.controllers;
 
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,13 +39,18 @@ public class ASBDemoSender{
     @Value("${namespace.url}")
     private String nsUrl;
 
+    private final String objectType = "com.cyrus822.manulife.messagingdemo.ServiceBusTopicDemo.models.Payment";
+
 /* Basic */
     @PostMapping("/byJMS/{destinationName}")
     public String byJMS(@PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
         String rtnMsg = "";
         try{
-            template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment));
-            rtnMsg = "Send Success";  
+            template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment), jmsMessage -> {
+                jmsMessage.setStringProperty("_type", objectType);                
+                return jmsMessage;
+            });
+            rtnMsg = "Send Success";
         } catch (Exception e){
             rtnMsg = "Send Fail" + e.getStackTrace();
             e.printStackTrace();
@@ -66,6 +72,8 @@ public class ASBDemoSender{
             //prepare the message
             String paymentJSON = new ObjectMapper().writeValueAsString(payment);
             ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
+            Map<String, Object> maps = msg.getApplicationProperties();
+            maps.put("_type", objectType);
 
             //send out the message
             sender.sendMessage(msg).subscribe(
@@ -105,7 +113,7 @@ public class ASBDemoSender{
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", token);
-            headers.set("_type", "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment");
+            headers.set("_type", objectType);
             HttpEntity<Payment> entity = new HttpEntity<>(payment, headers);
 
             //Call WS
