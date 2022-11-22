@@ -39,15 +39,12 @@ public class ASBDemoSender{
     private String nsUrl;
 
 /* Basic */
-    @PostMapping("/byJMS/{destinationName}/{sessionId}")
-    public String byJMS(@PathVariable("sessionId")String ctxId, @PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
+    @PostMapping("/byJMS/{destinationName}")
+    public String byJMS(@PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
         String rtnMsg = "";
         try{
-            template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment), jmsMessage -> {
-                jmsMessage.setStringProperty("JMSXGroupID", ctxId);                
-                return jmsMessage;
-            });
-            rtnMsg = String.format("Send Success : session id : {%s}", ctxId);           
+            template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment));
+            rtnMsg = "Send Success";  
         } catch (Exception e){
             rtnMsg = "Send Fail" + e.getStackTrace();
             e.printStackTrace();
@@ -108,7 +105,7 @@ public class ASBDemoSender{
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", token);
-            headers.set("_type", "com.cyrus822.manulife.messagingdemo.ServiceBusTopicDemo.models.Payment");
+            headers.set("_type", "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment");
             HttpEntity<Payment> entity = new HttpEntity<>(payment, headers);
 
             //Call WS
