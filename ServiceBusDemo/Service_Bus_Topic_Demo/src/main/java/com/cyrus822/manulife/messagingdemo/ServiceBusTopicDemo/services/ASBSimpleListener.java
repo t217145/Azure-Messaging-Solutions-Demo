@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.cyrus822.manulife.messagingdemo.ServiceBusTopicDemo.models.Payment;
 
 @Service
-public class ASBTopicListener {
+public class ASBSimpleListener {
 
     //jmsListenerContainerFactory for queue
     //topicJmsListenerContainerFactory for topic
