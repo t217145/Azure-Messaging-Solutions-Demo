@@ -45,9 +45,13 @@ public class ASBDemoSender{
     @PostMapping("/byJMS/{destinationName}")
     public String byJMS(@PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
         String rtnMsg = "";
+        String properties = "{\"SessionId\": \"ctx-01\", \"MessageId\": \"msg01\"}";
         try{
             template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment), jmsMessage -> {
-                jmsMessage.setStringProperty("_type", OBJECTTYPE);                
+                jmsMessage.setStringProperty("_type", OBJECTTYPE);
+                jmsMessage.setStringProperty("JMSXGroupID", "ctx01");
+                jmsMessage.setStringProperty("BrokerProperties", properties);
+                jmsMessage.setJMSMessageID("msg01");
                 return jmsMessage;
             });
             rtnMsg = "Send Success";
