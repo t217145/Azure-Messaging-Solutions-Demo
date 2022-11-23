@@ -111,7 +111,7 @@ public class SessionSender {
             maps.put("_type", "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment");
             maps.put("actionType", actionType);   
         } catch (Exception e){
-
+            //do nth
         }
         return msg;
     }
