@@ -15,7 +15,8 @@ import javax.persistence.Id;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class PaymentWithSession implements Serializable {
+
+public class PaymentWithoutSession implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)    
     private int id;

@@ -21,6 +21,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @RequestMapping("/session")
 public class SessionSender {
 
+    private static final int NUMBER_OF_SESSION_GROUP = 5;
+
     @Autowired
     private JmsTemplate template;
 
@@ -33,72 +35,18 @@ public class SessionSender {
     @Value("${queue.session.name}")
     private String sessionQueueName;
 
-    private static final String OBJECTTYPE = "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment";    
-
     /* Without Session Id */
     @PostMapping("/noSessionId")
     public String noSessionId() {
-        String rtnMsg = "";
-                
-        try{
-            //prepare the sender
-            ServiceBusSenderClient senderClient = new ServiceBusClientBuilder().connectionString(connStr).sender().queueName(noSessionQueueName).buildClient();
-
-            //prepare the message
-            for(int i=1;i<=30;i++){
-                Payment payment = new Payment(i, "012", "HKD", "01234567", 12.34);
-                String paymentJSON = new ObjectMapper().writeValueAsString(payment);
-                ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
-                Map<String, Object> maps = msg.getApplicationProperties();
-                maps.put("_type", OBJECTTYPE);
-
-                senderClient.sendMessage(msg);
-
-                System.out.println(String.format("Policy {%d} send to {%s} without Session Id Success", payment.getPolicyNo(), noSessionQueueName));
-            }
-
-            //close the client
-            senderClient.close();
-
-            rtnMsg = String.format("Send to {%s} without Session Id Success", noSessionQueueName);
-        } catch (Exception e){
-            rtnMsg = "Send Fail" + e.getStackTrace();
-            e.printStackTrace();
-        }
-        return rtnMsg;
+        //It will !sequentially! generate 30 pair of Payment request, which is first create the request for payment, and then update the request. !!! Without Session !!!
+        return Send30Message(false, "012", "HKD", "1234567", 12.34);
     }
 
     /* With Session Id */
     @PostMapping("/withSessionId")
     public String withSessionId() {
-        String rtnMsg = "";
-                
-        try{
-            //prepare the sender
-            ServiceBusSenderClient senderClient = new ServiceBusClientBuilder().connectionString(connStr).sender().queueName(sessionQueueName).buildClient();
-            
-            //prepare the message
-            for(int i=1;i<=30;i++){
-                Payment payment = new Payment(i, "001", "USD", "7654321", 43.21);
-                String paymentJSON = new ObjectMapper().writeValueAsString(payment);
-                ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8))).setSessionId("ctx-" + Integer.toString(payment.getPolicyNo()%10));
-                Map<String, Object> maps = msg.getApplicationProperties();
-                maps.put("_type", OBJECTTYPE);
-
-                senderClient.sendMessage(msg);
-
-                System.out.println(String.format("Policy {%d} send to {%s} with Session Id Success", payment.getPolicyNo(), sessionQueueName));
-            }
-
-            //close the client
-            senderClient.close();
-
-            rtnMsg = String.format("Send to {%s} with Session Id Success", sessionQueueName);
-        } catch (Exception e){
-            rtnMsg = "Send Fail" + e.getStackTrace();
-            e.printStackTrace();
-        }
-        return rtnMsg;
+        //It will !sequentially! generate 30 pair of Payment request, which is first create the request for payment, and then update the request. !!! With Session !!!
+        return Send30Message(true, "001", "USD", "7654321", 43.21);
     }
 
     @PostMapping("/withSessionIdByJMS/{destinationName}/{sessionId}")
@@ -107,7 +55,7 @@ public class SessionSender {
         try{
             template.convertAndSend(destinationName, new ObjectMapper().writeValueAsString(payment), jmsMessage -> {
                 jmsMessage.setStringProperty("JMSXGroupID", ctxId); 
-                jmsMessage.setStringProperty("_type", OBJECTTYPE);                
+                jmsMessage.setStringProperty("_type", "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment");                
                 return jmsMessage;
             });
             rtnMsg = String.format("Send Success : session id : {%s}", ctxId);           
@@ -117,4 +65,54 @@ public class SessionSender {
         }
         return rtnMsg;
     } 
+
+    private String Send30Message(boolean isSessionEnabled, String bankCode, String currency, String acctNo, double amt){
+        String rtnMsg = "";
+        String strIsSession = isSessionEnabled ? "with" : "without";
+        String queueName = isSessionEnabled ? sessionQueueName : noSessionQueueName;
+        try{
+            //prepare the sender
+            ServiceBusSenderClient senderClient = new ServiceBusClientBuilder().connectionString(connStr).sender().queueName(queueName).buildClient();
+
+            //Generate 30 new + update request
+            for(int policyNo = 1; policyNo <= (NUMBER_OF_SESSION_GROUP * 3); policyNo++){
+                //First create the new Payment request
+                Payment payment = new Payment(policyNo, bankCode, currency, acctNo, amt);
+                ServiceBusMessage msg = prepareMessage(payment, isSessionEnabled, "insert");
+                senderClient.sendMessage(msg);
+                System.out.println(String.format("New payment request with policy number {%d} send to {%s} {%s} Session Id Success", payment.getPolicyNo(), queueName, strIsSession));
+
+                //Then update the Payment request, just add a suffix to the account number to indicate this is an update request
+                payment.setAcctNo(payment.getAcctNo() + "-updated");
+                ServiceBusMessage msgUpdated = prepareMessage(payment, isSessionEnabled, "update");
+                senderClient.sendMessage(msgUpdated);
+                System.out.println(String.format("Updated payment request with policy number {%d} send to {%s} {%s} Session Id Success", payment.getPolicyNo(), queueName, strIsSession));                
+            }
+
+            senderClient.close();
+
+            rtnMsg = String.format("Send to {%s} {%s} Session Id Success", queueName, strIsSession);
+        } catch (Exception e){
+            rtnMsg = "Send Fail" + e.getStackTrace();
+            e.printStackTrace();
+        }
+        return rtnMsg;
+    }
+
+    private ServiceBusMessage prepareMessage(Payment payment, boolean isSessionEnabled, String actionType){
+        ServiceBusMessage msg = null;
+        try{
+            String paymentJSON = new ObjectMapper().writeValueAsString(payment);
+            msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
+            if(isSessionEnabled){
+                msg.setSessionId("ctx-" + Integer.toString(payment.getPolicyNo() % NUMBER_OF_SESSION_GROUP));
+            }
+            Map<String, Object> maps = msg.getApplicationProperties();
+            maps.put("_type", "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment");
+            maps.put("actionType", actionType);   
+        } catch (Exception e){
+
+        }
+        return msg;
+    }
 }
