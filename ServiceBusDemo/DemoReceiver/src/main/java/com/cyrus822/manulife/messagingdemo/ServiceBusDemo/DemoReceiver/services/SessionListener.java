@@ -20,7 +20,7 @@ public class SessionListener {
         String processor = "p1";
         processPayment(payment, processor);
         try{
-            Thread.sleep(new Random(System.currentTimeMillis()).nextLong(800));
+            Thread.sleep(new Random(System.currentTimeMillis()).nextInt(800));
         } catch(Exception e) {
             //do nth
         }        
@@ -31,7 +31,7 @@ public class SessionListener {
         String processor = "p2";
         processPayment(payment, processor);
         try{
-            Thread.sleep(new Random(System.currentTimeMillis()).nextLong(800));
+            Thread.sleep(new Random(System.currentTimeMillis()).nextInt(800));
         } catch(Exception e) {
             //do nth
         }         
@@ -42,7 +42,7 @@ public class SessionListener {
         String processor = "p3";
         processPayment(payment, processor);
         try{
-            Thread.sleep(new Random(System.currentTimeMillis()).nextLong(800));
+            Thread.sleep(new Random(System.currentTimeMillis()).nextInt(800));
         } catch(Exception e) {
             //do nth
         }         
@@ -53,7 +53,7 @@ public class SessionListener {
         String processor = "p4";
         processPayment(payment, processor); 
         try{
-            Thread.sleep(new Random(System.currentTimeMillis()).nextLong(800));
+            Thread.sleep(new Random(System.currentTimeMillis()).nextInt(800));
         } catch(Exception e) {
             //do nth
         }               
@@ -64,7 +64,7 @@ public class SessionListener {
         String processor = "p5";
         processPayment(payment, processor);
         try{
-            Thread.sleep(new Random(System.currentTimeMillis()).nextLong(800));
+            Thread.sleep(new Random(System.currentTimeMillis()).nextInt(800));
         } catch(Exception e) {
             //do nth
         }        
