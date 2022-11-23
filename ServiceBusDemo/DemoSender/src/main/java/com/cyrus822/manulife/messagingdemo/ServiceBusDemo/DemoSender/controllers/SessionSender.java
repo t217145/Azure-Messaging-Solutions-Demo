@@ -1,8 +1,6 @@
 package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoSender.controllers;
 
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
@@ -14,7 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.azure.core.util.BinaryData;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusMessage;
-import com.azure.messaging.servicebus.ServiceBusSenderAsyncClient;
+import com.azure.messaging.servicebus.ServiceBusMessageBatch;
+import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoSender.models.Payment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -41,14 +40,14 @@ public class SessionSender {
     @PostMapping("/withoutSessionId")
     public String withoutSessionId() {
         String rtnMsg = "";
-        CountDownLatch countdownLatch = new CountDownLatch(1);
                 
         try{
             //prepare the sender
-            ServiceBusClientBuilder builder = new ServiceBusClientBuilder().connectionString(connStr);
-            ServiceBusSenderAsyncClient sender = builder.sender().queueName(noSessionQueueName).buildAsyncClient();
+            ServiceBusSenderClient senderClient = new ServiceBusClientBuilder().connectionString(connStr).sender().queueName(noSessionQueueName).buildClient();
             
             //prepare the message
+            ServiceBusMessageBatch messageBatch = senderClient.createMessageBatch(); 
+            
             for(int i=1;i<=30;i++){
                 Payment payment = new Payment(i, "001", "HKD", "76543210", 43.21);
                 String paymentJSON = new ObjectMapper().writeValueAsString(payment);
@@ -56,21 +55,30 @@ public class SessionSender {
                 Map<String, Object> maps = msg.getApplicationProperties();
                 maps.put("_type", OBJECTTYPE);
 
-                sender.sendMessage(msg).subscribe(
-                    unused -> System.out.println(String.format("Policy {%d} sending to {%s}", payment.getPolicyNo(), noSessionQueueName)),
-                    error -> System.err.println(String.format("Error occurred while publishing message {%s} to {%s} : %s ", payment, noSessionQueueName, error)),
-                    () -> {
-                        System.out.println(String.format("Policy {%d} send to {%s} complete.", payment.getPolicyNo(), noSessionQueueName));
+                if (messageBatch.tryAddMessage(msg)) {
+                    continue;
+                }
 
-                    }
-                );
+                // The batch is full, so we create a new batch and send the batch.
+                senderClient.sendMessages(messageBatch);
+                System.out.println("Sent a batch of messages to the queue: " + noSessionQueueName);  
+                
+                // create a new batch
+                messageBatch = senderClient.createMessageBatch();
+
+                // Add that message that we couldn't before.
+                if (!messageBatch.tryAddMessage(msg)) {
+                    System.err.printf("Message is too large for an empty batch. Skipping. Max size: %s.", messageBatch.getMaxSizeInBytes());
+                }                
             }
 
-            // subscribe() is not a blocking call. We wait here so the program does not end before the send is complete.
-            countdownLatch.await(60, TimeUnit.SECONDS);
-
-            // Close the sender.
-            sender.close();
+            if (messageBatch.getCount() > 0) {
+                senderClient.sendMessages(messageBatch);
+                System.out.println("Sent a batch of messages to the queue: " + noSessionQueueName);
+            }
+        
+            //close the client
+            senderClient.close();
 
             rtnMsg = String.format("Send to {%s} without Session Id Success", noSessionQueueName);
         } catch (Exception e){
@@ -84,14 +92,14 @@ public class SessionSender {
     @PostMapping("/withSessionId")
     public String withSessionId() {
         String rtnMsg = "";
-        CountDownLatch countdownLatch = new CountDownLatch(1);
                 
         try{
             //prepare the sender
-            ServiceBusClientBuilder builder = new ServiceBusClientBuilder().connectionString(connStr);
-            ServiceBusSenderAsyncClient sender = builder.sender().queueName(sessionQueueName).buildAsyncClient();
+            ServiceBusSenderClient senderClient = new ServiceBusClientBuilder().connectionString(connStr).sender().queueName(sessionQueueName).buildClient();
             
             //prepare the message
+            ServiceBusMessageBatch messageBatch = senderClient.createMessageBatch(); 
+            
             for(int i=1;i<=30;i++){
                 Payment payment = new Payment(i, "012", "USD", "01234567", 12.34);
                 String paymentJSON = new ObjectMapper().writeValueAsString(payment);
@@ -99,23 +107,32 @@ public class SessionSender {
                 Map<String, Object> maps = msg.getApplicationProperties();
                 maps.put("_type", OBJECTTYPE);
 
-                sender.sendMessage(msg).subscribe(
-                    unused -> System.out.println(String.format("Policy {%d} sending to {%s}", payment.getPolicyNo(), sessionQueueName)),
-                    error -> System.err.println(String.format("Error occurred while publishing message {%s} to {%s} : %s ", payment, sessionQueueName, error)),
-                    () -> {
-                        System.out.println(String.format("Policy {%d} send to {%s} complete.", payment.getPolicyNo(), sessionQueueName));
+                if (messageBatch.tryAddMessage(msg)) {
+                    continue;
+                }
 
-                    }
-                );
+                // The batch is full, so we create a new batch and send the batch.
+                senderClient.sendMessages(messageBatch);
+                System.out.println("Sent a batch of messages to the queue: " + sessionQueueName);  
+                
+                // create a new batch
+                messageBatch = senderClient.createMessageBatch();
+
+                // Add that message that we couldn't before.
+                if (!messageBatch.tryAddMessage(msg)) {
+                    System.err.printf("Message is too large for an empty batch. Skipping. Max size: %s.", messageBatch.getMaxSizeInBytes());
+                }                
             }
 
-            // subscribe() is not a blocking call. We wait here so the program does not end before the send is complete.
-            countdownLatch.await(60, TimeUnit.SECONDS);
+            if (messageBatch.getCount() > 0) {
+                senderClient.sendMessages(messageBatch);
+                System.out.println("Sent a batch of messages to the queue: " + sessionQueueName);
+            }
+        
+            //close the client
+            senderClient.close();
 
-            // Close the sender.
-            sender.close();
-
-            rtnMsg = String.format("Send to {%s} with Session Id Success", sessionQueueName);
+            rtnMsg = String.format("Send to {%s} without Session Id Success", sessionQueueName);
         } catch (Exception e){
             rtnMsg = "Send Fail" + e.getStackTrace();
             e.printStackTrace();
