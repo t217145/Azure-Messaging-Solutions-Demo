@@ -1,7 +1,6 @@
 package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.services;
 
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.stereotype.Service;
 import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment;
 
 //@Service

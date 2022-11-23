@@ -2,7 +2,6 @@ package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.services
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
