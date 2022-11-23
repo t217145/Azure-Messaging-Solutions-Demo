@@ -44,7 +44,6 @@ public class SessionSender {
     @PostMapping("/withoutSessionId")
     public String withoutSessionId() {
         String rtnMsg = "";
-        AtomicBoolean sampleSuccessful = new AtomicBoolean(false);
         CountDownLatch countdownLatch = new CountDownLatch(1);
                 
         try{
@@ -53,26 +52,22 @@ public class SessionSender {
             ServiceBusSenderAsyncClient sender = builder.sender().queueName(noSessionQueueName).buildAsyncClient();
             
             //prepare the message
-            List<ServiceBusMessage> messages = new ArrayList<>();//Arrays.asList(batchMsg1, batchMsg2);
-
             for(int i=1;i<=30;i++){
-                Payment payment = new Payment(i, "001", "HKD", "76543210", 98.76);
+                Payment payment = new Payment(i, "001", "HKD", "76543210", 43.21);
                 String paymentJSON = new ObjectMapper().writeValueAsString(payment);
                 ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
                 Map<String, Object> maps = msg.getApplicationProperties();
                 maps.put("_type", OBJECTTYPE);
 
-                messages.add(msg);
-            }
+                sender.sendMessage(msg).subscribe(
+                    unused -> System.out.println(String.format("Policy {%d} sending to {%s}", payment.getPolicyNo(), noSessionQueueName)),
+                    error -> System.err.println(String.format("Error occurred while publishing message {%s} to {%s} : %s ", payment, noSessionQueueName, error)),
+                    () -> {
+                        System.out.println(String.format("Policy {%d} send to {%s} complete.", payment.getPolicyNo(), noSessionQueueName));
 
-            sender.sendMessages(messages).subscribe(
-                unused -> System.out.println(String.format("Batch sending to {%s}", noSessionQueueName)),
-                error -> System.err.println(String.format("Error occurred while publishing message batch to {%s} : %s ", noSessionQueueName, error)),
-                () -> {
-                    System.out.println(String.format("Batch send to {%s} complete.", noSessionQueueName));
-                    sampleSuccessful.set(true);
-                }
-            );
+                    }
+                );
+            }
 
             // subscribe() is not a blocking call. We wait here so the program does not end before the send is complete.
             countdownLatch.await(60, TimeUnit.SECONDS);
@@ -92,7 +87,6 @@ public class SessionSender {
     @PostMapping("/withSessionId")
     public String withSessionId() {
         String rtnMsg = "";
-        AtomicBoolean sampleSuccessful = new AtomicBoolean(false);
         CountDownLatch countdownLatch = new CountDownLatch(1);
                 
         try{
@@ -101,8 +95,6 @@ public class SessionSender {
             ServiceBusSenderAsyncClient sender = builder.sender().queueName(sessionQueueName).buildAsyncClient();
             
             //prepare the message
-            List<ServiceBusMessage> messages = new ArrayList<>();//Arrays.asList(batchMsg1, batchMsg2);
-
             for(int i=1;i<=30;i++){
                 Payment payment = new Payment(i, "012", "USD", "01234567", 12.34);
                 String paymentJSON = new ObjectMapper().writeValueAsString(payment);
@@ -110,17 +102,15 @@ public class SessionSender {
                 Map<String, Object> maps = msg.getApplicationProperties();
                 maps.put("_type", OBJECTTYPE);
 
-                messages.add(msg);
-            }
+                sender.sendMessage(msg).subscribe(
+                    unused -> System.out.println(String.format("Policy {%d} sending to {%s}", payment.getPolicyNo(), sessionQueueName)),
+                    error -> System.err.println(String.format("Error occurred while publishing message {%s} to {%s} : %s ", payment, sessionQueueName, error)),
+                    () -> {
+                        System.out.println(String.format("Policy {%d} send to {%s} complete.", payment.getPolicyNo(), sessionQueueName));
 
-            sender.sendMessages(messages).subscribe(
-                unused -> System.out.println(String.format("Batch sending to {%s}", sessionQueueName)),
-                error -> System.err.println(String.format("Error occurred while publishing message batch to {%s} : %s ", sessionQueueName, error)),
-                () -> {
-                    System.out.println(String.format("Batch send to {%s} complete.", sessionQueueName));
-                    sampleSuccessful.set(true);
-                }
-            );
+                    }
+                );
+            }
 
             // subscribe() is not a blocking call. We wait here so the program does not end before the send is complete.
             countdownLatch.await(60, TimeUnit.SECONDS);
