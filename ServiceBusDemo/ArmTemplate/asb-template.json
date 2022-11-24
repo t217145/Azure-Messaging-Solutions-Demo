@@ -1,0 +1,288 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namespaces_hk_ess_demo_name": {
+            "defaultValue": "hk-ess-demo",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ServiceBus/namespaces",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[parameters('namespaces_hk_ess_demo_name')]",
+            "location": "East Asia",
+            "sku": {
+                "name": "Premium",
+                "tier": "Premium",
+                "capacity": 1
+            },
+            "properties": {
+                "minimumTlsVersion": "1.2",
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false,
+                "zoneRedundant": true
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/authorizationrules",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/RootManageSharedAccessKey')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen",
+                    "Manage",
+                    "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/networkRuleSets",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/default')]",
+            "location": "East Asia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "publicNetworkAccess": "Enabled",
+                "defaultAction": "Allow",
+                "virtualNetworkRules": [],
+                "ipRules": []
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/queues",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/queue-de-dip')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "maxMessageSizeInKilobytes": 1024,
+                "lockDuration": "PT30S",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": true,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": true,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT1M",
+                "maxDeliveryCount": 3,
+                "status": "Active",
+                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                "enablePartitioning": false,
+                "enableExpress": false
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/queues",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/queue-without-session')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "maxMessageSizeInKilobytes": 1024,
+                "lockDuration": "PT30S",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": true,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "PT3M",
+                "deadLetteringOnMessageExpiration": true,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT3M",
+                "maxDeliveryCount": 2,
+                "status": "Active",
+                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                "enablePartitioning": false,
+                "enableExpress": false
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/queues",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/queue-with-session')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "maxMessageSizeInKilobytes": 1024,
+                "lockDuration": "PT30S",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": true,
+                "requiresSession": true,
+                "defaultMessageTimeToLive": "PT10M",
+                "deadLetteringOnMessageExpiration": true,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT1M",
+                "maxDeliveryCount": 1000,
+                "status": "Active",
+                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                "enablePartitioning": false,
+                "enableExpress": false
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/queues",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/simple-queue')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "maxMessageSizeInKilobytes": 1024,
+                "lockDuration": "PT30S",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "PT10M",
+                "deadLetteringOnMessageExpiration": true,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                "enablePartitioning": false,
+                "enableExpress": false
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/session-topic')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "maxMessageSizeInKilobytes": 1024,
+                "defaultMessageTimeToLive": "P14D",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": true,
+                "duplicateDetectionHistoryTimeWindow": "PT2M",
+                "enableBatchedOperations": true,
+                "status": "Active",
+                "supportOrdering": true,
+                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                "enablePartitioning": false,
+                "enableExpress": false
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/simple-topic')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "maxMessageSizeInKilobytes": 1024,
+                "defaultMessageTimeToLive": "PT10M",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": true,
+                "duplicateDetectionHistoryTimeWindow": "PT3M",
+                "enableBatchedOperations": true,
+                "status": "Active",
+                "supportOrdering": true,
+                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                "enablePartitioning": false,
+                "enableExpress": false
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/simple-topic/lock-subscription')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_hk_ess_demo_name'), 'simple-topic')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "isClientAffine": false,
+                "lockDuration": "PT30S",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "PT3M",
+                "deadLetteringOnMessageExpiration": true,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 3,
+                "status": "Active",
+                "enableBatchedOperations": true,
+                "autoDeleteOnIdle": "P10675198DT2H48M5.477S"
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/simple-topic/simple-subscription')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_hk_ess_demo_name'), 'simple-topic')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "isClientAffine": false,
+                "lockDuration": "PT30S",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "PT3M",
+                "deadLetteringOnMessageExpiration": true,
+                "deadLetteringOnFilterEvaluationExceptions": false,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true,
+                "autoDeleteOnIdle": "P10675198DT2H48M5.477S"
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions/rules",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/simple-topic/lock-subscription/lock-specific')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics/subscriptions', parameters('namespaces_hk_ess_demo_name'), 'simple-topic', 'lock-subscription')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_hk_ess_demo_name'), 'simple-topic')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "action": {},
+                "filterType": "CorrelationFilter",
+                "correlationFilter": {
+                    "properties": {
+                        "isLock": "true"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions/rules",
+            "apiVersion": "2022-01-01-preview",
+            "name": "[concat(parameters('namespaces_hk_ess_demo_name'), '/simple-topic/simple-subscription/no-lock')]",
+            "location": "eastasia",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics/subscriptions', parameters('namespaces_hk_ess_demo_name'), 'simple-topic', 'simple-subscription')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('namespaces_hk_ess_demo_name'), 'simple-topic')]",
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
+            ],
+            "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                    "sqlExpression": "user.isLock is null",
+                    "compatibilityLevel": 20
+                }
+            }
+        }
+    ]
+}
