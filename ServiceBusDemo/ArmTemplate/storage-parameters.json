@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "storageAccounts_hkessdemostorage_name": {
-            "value": "hkessdemostorage"
+            "value": "hkessdemostoragequeue"
         }
     }
 }
