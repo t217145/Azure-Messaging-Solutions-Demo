@@ -41,6 +41,11 @@
 			<version>4.4.1</version>
 		</dependency>
 		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>azure-servicebus-jms</artifactId>
+			<version>0.0.9</version>
+		</dependency>
+		<dependency>
 			<groupId>com.azure</groupId>
 			<artifactId>azure-messaging-servicebus</artifactId>
 			<version>7.4.0</version> <!-- Override the Service Bus dependency version specified in the BOM -->

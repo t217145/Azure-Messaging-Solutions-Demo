@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
-import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.DeDipPayment;
 import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment;
-import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.repos.PaymentDeDipRepo;
+import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.SimplePayment;
+import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.repos.SimplePaymentRepo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusErrorContext;
@@ -17,16 +17,19 @@ import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext;
 import com.azure.messaging.servicebus.models.ServiceBusReceiveMode;
 
 @Service
-public class DeDipListener implements CommandLineRunner {
+public class SimpleNativeTopicListener implements CommandLineRunner {
    
     @Value("${spring.jms.servicebus.connection-string}")
     private String connStr; 
 
-    @Value("${queue.dedip.name}")
-    private String queueName;    
+    @Value("${topic.simple.name}")
+    private String topicName;    
+
+    @Value("${topic.simple.subscription.name}")
+    private String subscriptionName;
 
     @Autowired
-    private PaymentDeDipRepo repo;
+    private SimplePaymentRepo repo;
 
     @Override
     public void run(String... args){
@@ -38,18 +41,11 @@ public class DeDipListener implements CommandLineRunner {
                     String paymentJson = new String(message.getBody().toBytes());
                     Payment payment = new ObjectMapper().readValue(paymentJson, Payment.class);
 
-                    //transform the object
-                    DeDipPayment newPayment = new DeDipPayment();
-                    newPayment.setAcctNo(payment.getAcctNo());
-                    newPayment.setAmt(payment.getAmt());
-                    newPayment.setBankCode(payment.getBankCode());
-                    newPayment.setCurrency(payment.getCurrency());
-                    newPayment.setPolicyNo(payment.getPolicyNo());
-                    newPayment.setMessageId(message.getMessageId());
+                    //decide whether it is an insert or update action
+                    SimplePayment simplePayment = new SimplePayment(0, payment.getPolicyNo(), payment.getBankCode(), payment.getCurrency(), payment.getAcctNo(), payment.getAmt());
+                    repo.save(simplePayment);
                     
-                    //Save to DB
-                    repo.save(newPayment);
-                    System.out.println(String.format("Insert Payment with message Id [%s]", newPayment.getMessageId()));
+                    System.out.println(String.format("Insert Payment %s", simplePayment));
                 } catch (Exception completionError) {
                     context.abandon();
                     System.out.printf("Completion of the message %s failed%n", message.getMessageId());
@@ -64,7 +60,8 @@ public class DeDipListener implements CommandLineRunner {
             ServiceBusProcessorClient processorClient = new ServiceBusClientBuilder()
                                             .connectionString(connStr)
                                             .processor()
-                                            .queueName(queueName)
+                                            .topicName(topicName)
+                                            .subscriptionName(subscriptionName)
                                             .receiveMode(ServiceBusReceiveMode.PEEK_LOCK)
                                             .processMessage(processMessage)
                                             .processError(processError)
