@@ -1,10 +1,10 @@
 package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoSender.controllers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.azure.core.util.BinaryData;
@@ -19,19 +19,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.azure.messaging.servicebus.ServiceBusSenderAsyncClient;
 
 @RestController
-@RequestMapping("/dedip")
-public class DeDipSender {
+@RequestMapping("/durable")
+public class DurableSender {
 
     private static final String OBJECTTYPE = "com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment";
 
     @Value("${spring.jms.servicebus.connection-string}")
     private String connStr; 
     
-    @Value("${queue.dedip.name}")
-    private String queueName;
+    @Value("${topic.simple.name}")
+    private String topicName;
 
-    @PostMapping("/bySdk/{MessageId}")
-    public String bySdk(@PathVariable("MessageId") String messageId, @RequestBody Payment payment) {
+    @PostMapping("send10Message")
+    public String send10Message() {
         String rtnMsg = "";
         AtomicBoolean sampleSuccessful = new AtomicBoolean(false);
         CountDownLatch countdownLatch = new CountDownLatch(1);
@@ -39,29 +39,34 @@ public class DeDipSender {
         try{
             //prepare the sender
             ServiceBusClientBuilder builder = new ServiceBusClientBuilder().connectionString(connStr);
-            ServiceBusSenderAsyncClient sender = builder.sender().queueName(queueName).buildAsyncClient();
+            ServiceBusSenderAsyncClient sender = builder.sender().topicName(topicName).buildAsyncClient();
             
+            List<ServiceBusMessage> msgs = new ArrayList<>();
+
             //prepare the message
-            String paymentJSON = new ObjectMapper().writeValueAsString(payment);
-            ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
-            msg.setMessageId(messageId);
-            Map<String, Object> maps = msg.getApplicationProperties();
-            maps.put("_type", OBJECTTYPE);
+            for(int i=1;i<=10;i++){
+                Payment payment = new Payment(i, "012", "HKD", "1234567", 12.34);
+                String paymentJSON = new ObjectMapper().writeValueAsString(payment);
+                ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
+                Map<String, Object> maps = msg.getApplicationProperties();
+                maps.put("_type", OBJECTTYPE);
+                msgs.add(msg);
+            }
 
             //send out the message
-            sender.sendMessage(msg).subscribe(
-                unused -> System.out.printf("Sending message with Id [%s]%n", messageId),
+            sender.sendMessages(msgs).subscribe(
+                unused -> System.out.println("Sending batch message"),
                 error -> System.err.println("Error occurred while publishing message batch: " + error),
                 () -> {
-                    System.out.printf("Send message with Id [%s] success%n", messageId);
+                    System.out.println("Send batch message success");
                     sampleSuccessful.set(true);
                 }
             );
 
-            countdownLatch.await(3, TimeUnit.SECONDS);
+            countdownLatch.await(10, TimeUnit.SECONDS);
             sender.close();
 
-            rtnMsg = "Send Success";
+            rtnMsg = "Send Success 10 messages to " + topicName;
         } catch (Exception e){
             rtnMsg = "Send Fail" + e.getStackTrace();
             e.printStackTrace();

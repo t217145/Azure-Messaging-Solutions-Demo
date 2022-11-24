@@ -17,10 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.util.BinaryData;
-import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusMessage;
@@ -32,7 +30,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/send")
+@RequestMapping("/basic")
 public class ASBDemoSender{
 
     @Autowired
@@ -181,6 +179,6 @@ public class ASBDemoSender{
             e.printStackTrace();
         }
         return rtnMsg;
-    }    
+    }
 
 }

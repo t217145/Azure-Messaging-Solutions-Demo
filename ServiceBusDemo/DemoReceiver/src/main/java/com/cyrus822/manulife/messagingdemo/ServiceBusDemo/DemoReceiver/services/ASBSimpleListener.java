@@ -1,9 +1,10 @@
 package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.services;
 
 import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Service;
 import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models.Payment;
 
-//@Service
+@Service
 public class ASBSimpleListener {
 
     @JmsListener(destination = "${topic.simple.name}", containerFactory = "topicJmsListenerContainerFactory", subscription = "simple-subscriiption")
