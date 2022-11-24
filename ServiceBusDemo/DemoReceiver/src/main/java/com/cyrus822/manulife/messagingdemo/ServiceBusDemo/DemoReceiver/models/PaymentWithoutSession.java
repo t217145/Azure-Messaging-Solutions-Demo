@@ -3,7 +3,6 @@ package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import javax.persistence.Entity;
@@ -16,10 +15,14 @@ import javax.persistence.Id;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@EqualsAndHashCode(callSuper = false)
-public class PaymentWithoutSession extends Payment {
+public class PaymentWithoutSession implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)    
     private int id;
+    private int policyNo;
+    private String bankCode;
+    private String currency;
+    private String acctNo;
+    private double amt;    
     private String processorName;
 }

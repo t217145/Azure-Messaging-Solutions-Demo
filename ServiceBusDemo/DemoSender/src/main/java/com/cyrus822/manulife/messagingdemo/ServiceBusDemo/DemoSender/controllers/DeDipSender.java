@@ -44,6 +44,7 @@ public class DeDipSender {
             //prepare the message
             String paymentJSON = new ObjectMapper().writeValueAsString(payment);
             ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
+            msg.setMessageId(messageId);
             Map<String, Object> maps = msg.getApplicationProperties();
             maps.put("_type", OBJECTTYPE);
 
@@ -57,7 +58,7 @@ public class DeDipSender {
                 }
             );
 
-            countdownLatch.await(10, TimeUnit.SECONDS);
+            countdownLatch.await(3, TimeUnit.SECONDS);
             sender.close();
 
             rtnMsg = "Send Success";

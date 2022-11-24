@@ -2,9 +2,9 @@ package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,10 +15,14 @@ import javax.persistence.Id;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@EqualsAndHashCode(callSuper = false)
-public class DeDipPayment extends Payment {
+public class DeDipPayment implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)    
     private int id;
+    private int policyNo;
+    private String bankCode;
+    private String currency;
+    private String acctNo;
+    private double amt;
     private String MessageId;
 }
