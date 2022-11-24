@@ -1,6 +1,5 @@
 package com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoReceiver.models;
 
-import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,9 +16,9 @@ import javax.persistence.Id;
 @NoArgsConstructor
 @Entity
 @EqualsAndHashCode(callSuper = false)
-public class PaymentWithoutSession extends Payment {
+public class DeDipPayment extends Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)    
     private int id;
-    private String processorName;
+    private String MessageId;
 }
