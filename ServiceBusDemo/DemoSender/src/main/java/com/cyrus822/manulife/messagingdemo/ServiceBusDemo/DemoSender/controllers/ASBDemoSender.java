@@ -17,10 +17,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import com.azure.core.credential.TokenCredential;
 import com.azure.core.util.BinaryData;
+import com.azure.identity.ClientSecretCredential;
+import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.azure.messaging.servicebus.ServiceBusSenderAsyncClient;
+import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoSender.models.AuthModel;
 import com.cyrus822.manulife.messagingdemo.ServiceBusDemo.DemoSender.models.Payment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -60,7 +65,7 @@ public class ASBDemoSender{
             e.printStackTrace();
         }
         return rtnMsg;
-    }       
+    }    
 
     @PostMapping("/bySdk/{destinationName}")
     public String bySdk(@PathVariable("destinationName")String destinationName, @RequestBody Payment payment) {
@@ -129,6 +134,50 @@ public class ASBDemoSender{
             rtnMsg = (rtnCode == 201) ? "Send Success" : "Send failed";
         } catch (Exception e){
             rtnMsg = "Send failed" + e.getStackTrace();
+            e.printStackTrace();
+        }
+        return rtnMsg;
+    }   
+    
+    @PostMapping("/AuthBySvcPrinciple")
+    public String bySdk(@RequestBody AuthModel authModel) {
+        String rtnMsg = "";
+        AtomicBoolean sampleSuccessful = new AtomicBoolean(false);
+        CountDownLatch countdownLatch = new CountDownLatch(1);
+                
+        try{
+            //prepare the Cred.
+            TokenCredential credential = new ClientSecretCredentialBuilder().clientId(authModel.getClientId()).tenantId(authModel.getTenantId()).clientSecret(authModel.getClientSecret()).build();
+
+            //prepare the sender
+            ServiceBusClientBuilder builder = new ServiceBusClientBuilder().credential(authModel.getFullNameSpace(), credential);
+            ServiceBusSenderAsyncClient sender = builder.sender().topicName(authModel.getQueueName()).buildAsyncClient();
+            
+            //prepare the message
+            String paymentJSON = new ObjectMapper().writeValueAsString(new Payment(1, "012", "HKD", "1234567", 12.34));
+            ServiceBusMessage msg = new ServiceBusMessage(BinaryData.fromBytes(paymentJSON.getBytes(UTF_8)));
+            Map<String, Object> maps = msg.getApplicationProperties();
+            maps.put("_type", OBJECTTYPE);
+
+            //send out the message
+            sender.sendMessage(msg).subscribe(
+                unused -> System.out.println("Batch sent."),
+                error -> System.err.println("Error occurred while publishing message batch: " + error),
+                () -> {
+                    System.out.println("Batch send complete.");
+                    sampleSuccessful.set(true);
+                }
+            );
+
+            // subscribe() is not a blocking call. We wait here so the program does not end before the send is complete.
+            countdownLatch.await(10, TimeUnit.SECONDS);
+
+            // Close the sender.
+            sender.close();
+
+            rtnMsg = "Send Success";
+        } catch (Exception e){
+            rtnMsg = "Send Fail" + e.getStackTrace();
             e.printStackTrace();
         }
         return rtnMsg;
