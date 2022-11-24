@@ -57,9 +57,7 @@ public class DeDipListener implements CommandLineRunner {
                 }
             };
     
-            Consumer<ServiceBusErrorContext> processError = errorContext -> {
-                System.err.println("Error occurred while receiving message:" + errorContext.getException());
-            };
+            Consumer<ServiceBusErrorContext> processError = errorContext -> System.err.println("Error occurred while receiving message:" + errorContext.getException());
     
             ServiceBusProcessorClient processorClient = new ServiceBusClientBuilder()
                                             .connectionString(connStr)

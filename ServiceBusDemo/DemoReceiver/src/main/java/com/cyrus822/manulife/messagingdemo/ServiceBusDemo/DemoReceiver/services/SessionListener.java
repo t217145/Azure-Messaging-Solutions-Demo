@@ -90,9 +90,7 @@ public class SessionListener implements CommandLineRunner {
             }
         };
 
-        Consumer<ServiceBusErrorContext> processError = errorContext -> {
-            System.err.println("Error occurred while receiving message:" + errorContext.getException());
-        };
+        Consumer<ServiceBusErrorContext> processError = errorContext -> System.err.println("Error occurred while receiving message:" + errorContext.getException());
 
         ServiceBusProcessorClient processorClient = new ServiceBusClientBuilder()
                                         .connectionString(connStr)
@@ -126,7 +124,7 @@ public class SessionListener implements CommandLineRunner {
                     receiver.setSessionState("new".getBytes(StandardCharsets.UTF_8));
                     return receiver.receiveMessages();
                 },
-                receiver -> Mono.fromRunnable(() -> receiver.close()))
+                receiver -> Mono.fromRunnable(receiver::close))
                 .subscribe(message -> {
                     try{
                         //decide whether it is an insert or update action
