@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "namespaces_hk_ess_demo_name": {
-            "value": null
+            "value": "hk-ess-demo"
         }
     }
 }
