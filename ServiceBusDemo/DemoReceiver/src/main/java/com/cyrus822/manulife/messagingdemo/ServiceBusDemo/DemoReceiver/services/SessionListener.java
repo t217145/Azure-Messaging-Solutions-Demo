@@ -78,11 +78,7 @@ public class SessionListener implements CommandLineRunner {
                     updateWithoutSession(payment, processorName);
                 }
                 //intentionally pause the process randomly
-                try{
-                    Thread.sleep(new Random(System.currentTimeMillis()).nextInt(1500));
-                } catch(Exception e) {
-                    //do nth
-                }
+                pauseRandom();
             } catch (Exception completionError) {
                 context.abandon();
                 System.out.printf("Completion of the message %s failed%n", message.getMessageId());
@@ -137,11 +133,7 @@ public class SessionListener implements CommandLineRunner {
                             updateWithSession(payment, processorName);
                         }                        
                         //intentionally pause the process randomly
-                        try{
-                            Thread.sleep(new Random(System.currentTimeMillis()).nextInt(1500));
-                        } catch(Exception e) {
-                            //do nth
-                        }                        
+                        pauseRandom();
                     }catch(Exception e){
                         //do nth
                     }                        
@@ -155,6 +147,14 @@ public class SessionListener implements CommandLineRunner {
             //do nth
         }
     }    
+
+    private void pauseRandom(){
+        try{
+            Thread.sleep(new Random(System.currentTimeMillis()).nextInt(1500));
+        } catch(Exception e) {
+            //do nth
+        }      
+    }
 
     //Transform and Save to DB
     private void insertPaymentWithSession(Payment payment, String processorName){
