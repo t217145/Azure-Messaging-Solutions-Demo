@@ -15,8 +15,8 @@
             "name": "[parameters('namespaces_hk_ess_demo_name')]",
             "location": "East Asia",
             "sku": {
-                "name": "Premium",
-                "tier": "Premium",
+                "name": "Standard",
+                "tier": "Standard",
                 "capacity": 1
             },
             "properties": {
@@ -66,9 +66,9 @@
                 "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
             ],
             "properties": {
-                "maxMessageSizeInKilobytes": 1024,
+                "maxMessageSizeInKilobytes": 256,
                 "lockDuration": "PT30S",
-                "maxSizeInMegabytes": 1024,
+                "maxSizeInMegabytes": 256,
                 "requiresDuplicateDetection": true,
                 "requiresSession": false,
                 "defaultMessageTimeToLive": "P14D",
@@ -91,9 +91,9 @@
                 "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
             ],
             "properties": {
-                "maxMessageSizeInKilobytes": 1024,
+                "maxMessageSizeInKilobytes": 256,
                 "lockDuration": "PT30S",
-                "maxSizeInMegabytes": 1024,
+                "maxSizeInMegabytes": 256,
                 "requiresDuplicateDetection": true,
                 "requiresSession": false,
                 "defaultMessageTimeToLive": "PT3M",
@@ -116,9 +116,9 @@
                 "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
             ],
             "properties": {
-                "maxMessageSizeInKilobytes": 1024,
+                "maxMessageSizeInKilobytes": 256,
                 "lockDuration": "PT30S",
-                "maxSizeInMegabytes": 1024,
+                "maxSizeInMegabytes": 256,
                 "requiresDuplicateDetection": true,
                 "requiresSession": true,
                 "defaultMessageTimeToLive": "PT10M",
@@ -141,9 +141,9 @@
                 "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
             ],
             "properties": {
-                "maxMessageSizeInKilobytes": 1024,
+                "maxMessageSizeInKilobytes": 256,
                 "lockDuration": "PT30S",
-                "maxSizeInMegabytes": 1024,
+                "maxSizeInMegabytes": 256,
                 "requiresDuplicateDetection": false,
                 "requiresSession": false,
                 "defaultMessageTimeToLive": "PT10M",
@@ -166,9 +166,9 @@
                 "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
             ],
             "properties": {
-                "maxMessageSizeInKilobytes": 1024,
+                "maxMessageSizeInKilobytes": 256,
                 "defaultMessageTimeToLive": "P14D",
-                "maxSizeInMegabytes": 1024,
+                "maxSizeInMegabytes": 256,
                 "requiresDuplicateDetection": true,
                 "duplicateDetectionHistoryTimeWindow": "PT2M",
                 "enableBatchedOperations": true,
@@ -188,9 +188,9 @@
                 "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_hk_ess_demo_name'))]"
             ],
             "properties": {
-                "maxMessageSizeInKilobytes": 1024,
+                "maxMessageSizeInKilobytes": 256,
                 "defaultMessageTimeToLive": "PT10M",
-                "maxSizeInMegabytes": 1024,
+                "maxSizeInMegabytes": 256,
                 "requiresDuplicateDetection": true,
                 "duplicateDetectionHistoryTimeWindow": "PT3M",
                 "enableBatchedOperations": true,
