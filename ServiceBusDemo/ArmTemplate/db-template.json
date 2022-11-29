@@ -31,7 +31,7 @@
                 "zoneRedundant": false,
                 "readScale": "Disabled",
                 "requestedBackupStorageRedundancy": "Local",
-                "maintenanceConfigurationId": "/subscriptions/da6b527a-d402-469c-b22f-ed5bfd663780/providers/Microsoft.Maintenance/publicMaintenanceConfigurations/SQL_Default",
+                "maintenanceConfigurationId": "/subscriptions/eab52a97-d9c2-4847-9c67-4bd11077d7f3/providers/Microsoft.Maintenance/publicMaintenanceConfigurations/SQL_Default",
                 "isLedgerOn": false
             }
         },
@@ -124,7 +124,7 @@
                 "retentionDays": 0,
                 "isAzureMonitorTargetEnabled": false,
                 "state": "Disabled",
-                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+                "storageAccountSubscriptionId": "eab52a97-d9c2-4847-9c67-4bd11077d7f3"
             }
         },
         {
@@ -164,7 +164,7 @@
                 "retentionDays": 0,
                 "isAzureMonitorTargetEnabled": false,
                 "state": "Disabled",
-                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+                "storageAccountSubscriptionId": "eab52a97-d9c2-4847-9c67-4bd11077d7f3"
             }
         },
         {
